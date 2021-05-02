@@ -1,5 +1,6 @@
 import itertools
 from enum import Enum
+import os
 
 
 def combine(a: dict) -> list:
@@ -22,6 +23,9 @@ def line(b: list) -> tuple:
 def swaggu(msg: str):
     print('\n', '*' * 40, msg, '*' * 40)
 
+def namer():
+    print(f"\n{' ' * 30}Chur {os.getenv('username')}")
+
 
 def validator(*check):
     """Code grandfathered in... no longer in-use
@@ -36,37 +40,36 @@ def validator(*check):
 
 
 def filtered(cardinput: str, listToIter: list) -> list:
+    """ Helper Func:
+    Takes in card input method from @param: cardinput
+    Applies filter against list @param: listToIter"""
+
     def excludes(fparam: list, excl: list) -> list:
         return list([exc for exc in fparam if exc not in excl])
 
     def iproduct(unpack: list) -> list:
         """creates cartesian product from our iter list and calls func @excludes to return filtered list"""
         lparam = []
-        for each in itertools.product(list(D.transType.value.values()), list(D.acct.value.values()), *unpack):
+        for each in itertools.product(*listToIterate, *unpack):
             lparam.append(each)
-        # print('byo', lparam)
+        
         return excludes(listToIter, lparam)
 
-    try:
-        if cardinput.lower() == 'contactless':
-            exceptionx = [inputSet['Contactless'][0]['Input'][:2], inputSet['Contactless'][0]['CVM'][:2],
-                          [D.cvmRange.value[1], D.cvmRange.value[2]]]
-            # print('ayo', exceptionx)
-            return iproduct(exceptionx)
+    def switcher(switchparam: str) -> list:
+       
+        switch = {
+            'contactless': [inputSet['Contactless'][0]['Input'][:2], inputSet['Contactless'][0]['CVM'][:2],
+                          [D.cvmRange.value[1], D.cvmRange.value[2]]],
+            'icc': [inputSet['ICC'][0]['Input'], [D.CVM.value[4]]],
+            'magneticstripe': [inputSet['MagneticStripe'][0]['Input'], [cvm for cvm in D.CVM.value.values() if cvm not in list(inputSet['MagneticStripe'][0]['CVM'])]],
+            'manpan': [inputSet['MANPAN'][0]['Input'], [cvm for cvm in D.CVM.value.values() if cvm not in list(inputSet['MANPAN'][0]['CVM'])]],
+            'mobile': [inputSet['Mobile'][0]['Input'], inputSet['Mobile'][0]['CVM'][:3],[D.cvmRange.value[1], D.cvmRange.value[2]]]
+        }
+        
+        return iproduct(switch.get(switchparam.lower(), f'func {switcher.__name__}: '))
 
-        elif cardinput.lower() == 'icc':
-            exceptiony = [inputSet['ICC'][0]['Input'], [D.CVM.value[4]]]
-
-            return iproduct(exceptiony)
-        elif cardinput.lower() == 'magneticstripe':
-            ...  # TODO
-        elif cardinput.lower() == 'manpan':
-            ...  # TODO
-        elif cardinput.lower() == 'mobile':
-            ...  # TODO
-
-    except Exception as E:
-        print(f'Exception Occurred: {E}')
+    
+    return switcher(cardinput)
 
 
 def accessor(c: dict, d: str) -> list:
@@ -83,8 +86,11 @@ def accessor(c: dict, d: str) -> list:
 
 
 def generate(bc: dict, ent: str):
+    """helper func:
+    takes in list object, unpacks dict->sub list.
+    returns cartesian product"""
     product = []
-    for f in itertools.product(list(D.transType.value.values()), list(D.acct.value.values()), *accessor(bc, ent)):
+    for f in itertools.product(*listToIterate, *accessor(bc, ent)):
         product.append(f)
     return product
 
@@ -105,7 +111,7 @@ inputSet = {'Contactless': [{'Input': [D.cardInput.value[4], D.cardInput.value[5
                              'Range': list(D.cvmRange.value.values())}],
 
             'ICC': [{'Input': [D.cardInput.value[2]],
-                     'CVM': [D.CVM.value[0], D.CVM.value[1], D.CVM.value[2], D.CVM.value[3], D.CVM.value[4]]}],
+                     'CVM': [D.CVM.value[0], D.CVM.value[1], D.CVM.value[2], D.CVM.value[3], D.CVM.value[4], D.CVM.value[5]]}],
 
             'MagneticStripe': [{'Input': [D.cardInput.value[1], D.cardInput.value[3]],
                                 'CVM': [D.CVM.value[2], D.CVM.value[3]]}],
@@ -113,10 +119,16 @@ inputSet = {'Contactless': [{'Input': [D.cardInput.value[4], D.cardInput.value[5
             'MANPAN': [{'Input': [D.cardInput.value[0]],
                         'CVM': [D.CVM.value[3]]}],
 
-            'Mobile': [{'Input': [D.cardInput.value[5]],
-                        'CVM': [D.CVM.value[2], D.CVM.value[3], D.CVM.value[4], D.CVM.value[5]]}]}
+            'Mobile': [{'Input': [D.cardInput.value[6]],
+                        'CVM': [D.CVM.value[2], D.CVM.value[3], D.CVM.value[4], D.CVM.value[5]],
+                        'Range': list(D.cvmRange.value.values())}]}
+
+listToIterate = [list(D.transType.value.values()), list(D.acct.value.values())]
 
 if __name__ == '__main__':
     for i in inputSet.keys():
         swaggu(i)
         line(filtered(i, generate(inputSet, i)))
+    
+    
+    
